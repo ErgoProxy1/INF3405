@@ -25,13 +25,25 @@ public class Server {
 		return ip;
 	}
 	
+	public static int inputAndValidatePort() {
+		boolean isValid = false;
+		int port = 5000;
+		String prompt = "Provide port number (5000-5050) : ";
+		while(!isValid) {
+			System.out.println(prompt);
+			port = input.nextInt();
+			isValid = (port >= 5000) && (port <= 5050);
+			prompt = "Port number not in range\nProvide port number (5000-5050) : ";
+		}
+		return port;
+	}
+	
 	public static void main(String[] args) throws Exception{
 		int clientNumber = 0;
-	
-		System.out.println("Provide port number (5000-5050) : ");
-		int serverPort = input.nextInt();
-
+		
 		String serverAdress = inputAndValidateIP();
+		
+		int serverPort = inputAndValidatePort();
 		
 		listener = new ServerSocket();
 		listener.setReuseAddress(true);
@@ -47,6 +59,7 @@ public class Server {
 				new ClientHandler(listener.accept(), clientNumber++).start();
 			}
 		} finally {
+			input.close();
 			listener.close();
 		}
 	}

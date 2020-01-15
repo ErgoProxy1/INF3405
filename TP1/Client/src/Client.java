@@ -7,6 +7,7 @@ public class Client {
 	private static Socket socket;
 	private static Scanner input = new Scanner(System.in);
 	
+	// Demande à l'utilisateur d'entrer une adresse IP jusqu'à ce qu'elle soit valide
 	public static String inputAndValidateIP() {
 		boolean isValid = false;
 		String ip = "";
@@ -22,6 +23,7 @@ public class Client {
 		return ip;
 	}
 	
+	// Demande à l'utilisateur d'entrer un numero de port jusqu'à ce qu'il soit valide
 	public static int inputAndValidatePort() {
 		boolean isValid = false;
 		int port = 0;

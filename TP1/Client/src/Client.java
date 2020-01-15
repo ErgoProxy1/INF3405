@@ -1,5 +1,6 @@
 import java.io.DataInputStream;
 import java.net.Socket;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Client {
@@ -23,11 +24,19 @@ public class Client {
 	
 	public static int inputAndValidatePort() {
 		boolean isValid = false;
-		int port = 5000;
+		int port = 0;
 		String prompt = "Provide port number (5000-5050) : ";
 		while(!isValid) {
 			System.out.println(prompt);
-			port = input.nextInt();
+			try {
+				input.nextLine();
+				port = input.nextInt();
+			} catch (InputMismatchException e) {
+				isValid = false;
+				port = 0;
+				prompt = "Input was invalid\nProvide port number (5000-5050) : ";
+				continue;
+			}
 			isValid = (port >= 5000) && (port <= 5050);
 			prompt = "Port number not in range\nProvide port number (5000-5050) : ";
 		}

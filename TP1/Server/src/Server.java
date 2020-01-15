@@ -33,10 +33,6 @@ public class Server {
 
 		String serverAdress = inputAndValidateIP();
 		
-		//Verify
-		serverAdress = "127.0.0.1";
-		serverPort = 5000;
-		
 		listener = new ServerSocket();
 		listener.setReuseAddress(true);
 		InetAddress serverIp = InetAddress.getByName(serverAdress);

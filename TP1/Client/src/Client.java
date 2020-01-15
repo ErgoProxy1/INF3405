@@ -33,10 +33,6 @@ public class Client {
 		
 		System.out.println("Provide Password : ");
 		String password = input.next();
-		
-		//Verify
-		server = "127.0.0.1";
-		port = 5000;
 	
 		socket = new Socket(server, port);
 		

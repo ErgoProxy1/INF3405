@@ -1,8 +1,10 @@
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -62,21 +64,24 @@ public class Client {
 		out.flush();
 		
 		File imageFile = new File(imageName+".jpg");
-		BufferedImage image = ImageIO.read(imageFile);
-		ImageOutputStream imageOutput = ImageIO.createImageOutputStream(socket.getOutputStream());
-		ImageIO.write(image, "JPG", imageOutput);
-		imageOutput.close();
+		byte[] fileContent = Files.readAllBytes(imageFile.toPath());
+		System.out.print(fileContent.length);
+		out.writeInt(fileContent.length);
+		out.flush();
+		out.write(fileContent, 0, fileContent.length);
+		out.flush();
 	}
 	
-	public static void getImage(String name, DataOutputStream out) throws IOException {
+	public static void getImage(String name, DataOutputStream out, DataInputStream in) throws IOException {
 		out.write(2);
 		out.flush();
 		
-		ImageInputStream imageInput = ImageIO.createImageInputStream(socket.getInputStream());
-		BufferedImage processed = ImageIO.read(imageInput);
-		imageInput.close();
+		int length = in.readInt();
+		byte[] processedBytes = new byte[length];
+		in.readFully(processedBytes);
+		ByteArrayInputStream byteStream = new ByteArrayInputStream(processedBytes);
 		
-		ImageIO.write(processed, "jpg", new File(name+".jpg"));
+		ImageIO.write(ImageIO.read(byteStream), "jpg", new File(name+".jpg"));
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -95,13 +100,16 @@ public class Client {
 		
 		while(true) {
 			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+			DataInputStream in = new DataInputStream(socket.getInputStream());
+			
 			System.out.println("A) Process Image\nB) Exit");
 			String selection = input.next().strip().toUpperCase();
+			
 			if(selection.matches("A")) {
 				sendImage(out);
 				System.out.println("Provide Generated Image Name : ");
 				String newName = input.next();
-				getImage(newName, out);
+				getImage(newName, out, in);
 			} else if(selection.matches("B")) {
 				out.write(3);
 				out.close();
@@ -110,11 +118,7 @@ public class Client {
 				System.out.println("Invalid Input");
 				continue;
 			}
-		}
-		
-		//String messageFromServer = in.readUTF();
-		//System.out.println(messageFromServer);
-				
+		}	
 		input.close();
 		socket.close();
 	}

@@ -1,4 +1,6 @@
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -80,12 +82,24 @@ public class Server {
 			try {
 				boolean done = false;
 				while(!done) {
-					DataInputStream in = new DataInputStream(socket.getInputStream());	
+					DataInputStream in = new DataInputStream(socket.getInputStream());
+					DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 					int userAction = in.read();
 					if(userAction == 1) {
-						getClientImage();
+						int length = in.readInt();
+						byte[] fileContent = new byte[length];
+						in.readFully(fileContent);
+						ByteArrayInputStream byteStream = new ByteArrayInputStream(fileContent);
+						image = Sobel.process(ImageIO.read(byteStream));
 					} else if (userAction == 2) {
-						sendClientImage();
+						ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+						ImageIO.write(image , "jpg", byteStream);
+						byte[] processedBytes = byteStream.toByteArray();
+						out.writeInt(processedBytes.length);
+						out.flush();
+						out.write(processedBytes, 0, processedBytes.length);
+						out.flush();
+						byteStream.close();
 					} else if (userAction == 3) {
 						System.out.println("Client " + clientNumber + " has disconnected.");
 						done = true;
@@ -101,18 +115,6 @@ public class Server {
 				}
 				System.out.println("Closed " + clientNumber);
 			}
-		}
-		
-		public void getClientImage() throws IOException {
-			image = ImageIO.read(socket.getInputStream());
-			System.out.print("hi");
-			ImageIO.write(Sobel.process(image), "jpg", new File("test.jpg"));
-		}
-		
-		public void sendClientImage() throws IOException {
-			ImageOutputStream output = ImageIO.createImageOutputStream(socket.getOutputStream());
-			ImageIO.write(image, "jpg", output);
-            output.close();
 		}
 	}
 }

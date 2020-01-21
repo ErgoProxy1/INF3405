@@ -1,4 +1,5 @@
 import java.awt.image.BufferedImage;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageOutputStream;
 
 public class Server {
 	private static ServerSocket listener;
@@ -67,22 +69,28 @@ public class Server {
 	private static class ClientHandler extends Thread{
 		private Socket socket;
 		private int clientNumber;
+		private BufferedImage image;
 		
 		public ClientHandler(Socket socket, int clientNumber) {
 			this.socket = socket;
 			this.clientNumber = clientNumber;
-			//System.out.println();
-			//System.out.println(clientNumber);
-			//System.out.println(socket);
 		}
 		
 		public void run() {
 			try {
-                BufferedImage image=ImageIO.read(ImageIO.createImageInputStream(socket.getInputStream()));
-                //socket.getOutputStream().flush();
-                ImageIO.write(Sobel.process(image), "jpg", new File("test.jpg"));
-                //socket.getOutputStream().flush();
-				
+				boolean done = false;
+				while(!done) {
+					DataInputStream in = new DataInputStream(socket.getInputStream());	
+					int userAction = in.read();
+					if(userAction == 1) {
+						getClientImage();
+					} else if (userAction == 2) {
+						sendClientImage();
+					} else if (userAction == 3) {
+						System.out.println("Client " + clientNumber + " has disconnected.");
+						done = true;
+					}
+				}
 			} catch (IOException e){
 				System.out.println("Error");
 			} finally {
@@ -93,6 +101,18 @@ public class Server {
 				}
 				System.out.println("Closed " + clientNumber);
 			}
+		}
+		
+		public void getClientImage() throws IOException {
+			image = ImageIO.read(socket.getInputStream());
+			System.out.print("hi");
+			ImageIO.write(Sobel.process(image), "jpg", new File("test.jpg"));
+		}
+		
+		public void sendClientImage() throws IOException {
+			ImageOutputStream output = ImageIO.createImageOutputStream(socket.getOutputStream());
+			ImageIO.write(image, "jpg", output);
+            output.close();
 		}
 	}
 }

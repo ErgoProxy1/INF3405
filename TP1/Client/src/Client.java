@@ -1,11 +1,14 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.net.Socket;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.ImageOutputStream;
 
 import java.awt.image.BufferedImage;
 
@@ -51,6 +54,31 @@ public class Client {
 		return port;
 	}
 	
+	public static void sendImage(DataOutputStream out) throws IOException {
+		System.out.println("Provide Image Name : ");
+		String imageName = input.next();
+		
+		out.write(1);
+		out.flush();
+		
+		File imageFile = new File(imageName+".jpg");
+		BufferedImage image = ImageIO.read(imageFile);
+		ImageOutputStream imageOutput = ImageIO.createImageOutputStream(socket.getOutputStream());
+		ImageIO.write(image, "JPG", imageOutput);
+		imageOutput.close();
+	}
+	
+	public static void getImage(String name, DataOutputStream out) throws IOException {
+		out.write(2);
+		out.flush();
+		
+		ImageInputStream imageInput = ImageIO.createImageInputStream(socket.getInputStream());
+		BufferedImage processed = ImageIO.read(imageInput);
+		imageInput.close();
+		
+		ImageIO.write(processed, "jpg", new File(name+".jpg"));
+	}
+	
 	public static void main(String[] args) throws Exception {
 		
 		String server = inputAndValidateIP();
@@ -64,19 +92,25 @@ public class Client {
 		String password = input.next();
 	
 		socket = new Socket(server, port);
-	
-		//DataInputStream in = new DataInputStream(socket.getInputStream());
 		
-		// Processing d'image
-		System.out.println("Provide Image Name : ");
-		String imageName = input.next();
-		File imageFile = new File(imageName+".jpg");
-		BufferedImage image = ImageIO.read(imageFile);
-		ImageIO.write(image, "JPG", socket.getOutputStream());
-		
-		/*BufferedImage processed = ImageIO.read(socket.getInputStream());
-		ImageIO.write(processed, "jpg", new File("test.jpg"));*/
-		//Fin processing d'image
+		while(true) {
+			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+			System.out.println("A) Process Image\nB) Exit");
+			String selection = input.next().strip().toUpperCase();
+			if(selection.matches("A")) {
+				sendImage(out);
+				System.out.println("Provide Generated Image Name : ");
+				String newName = input.next();
+				getImage(newName, out);
+			} else if(selection.matches("B")) {
+				out.write(3);
+				out.close();
+				break;
+			} else {
+				System.out.println("Invalid Input");
+				continue;
+			}
+		}
 		
 		//String messageFromServer = in.readUTF();
 		//System.out.println(messageFromServer);

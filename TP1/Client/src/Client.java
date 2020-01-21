@@ -7,12 +7,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.util.InputMismatchException;
 import java.util.Scanner;
-
 import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageInputStream;
-import javax.imageio.stream.ImageOutputStream;
-
-import java.awt.image.BufferedImage;
 
 public class Client {
 	private static Socket socket;

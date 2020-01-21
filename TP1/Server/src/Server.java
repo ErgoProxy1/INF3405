@@ -1,5 +1,6 @@
 import java.awt.image.BufferedImage;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -70,15 +71,17 @@ public class Server {
 		public ClientHandler(Socket socket, int clientNumber) {
 			this.socket = socket;
 			this.clientNumber = clientNumber;
-			System.out.println();
-			System.out.println(clientNumber);
-			System.out.println(socket);
+			//System.out.println();
+			//System.out.println(clientNumber);
+			//System.out.println(socket);
 		}
 		
 		public void run() {
 			try {
                 BufferedImage image=ImageIO.read(ImageIO.createImageInputStream(socket.getInputStream()));
-                ImageIO.write(Sobel.process(image), "jpg", socket.getOutputStream());
+                //socket.getOutputStream().flush();
+                ImageIO.write(Sobel.process(image), "jpg", new File("test.jpg"));
+                //socket.getOutputStream().flush();
 				
 			} catch (IOException e){
 				System.out.println("Error");

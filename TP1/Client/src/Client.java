@@ -1,7 +1,13 @@
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
 import java.net.Socket;
 import java.util.InputMismatchException;
 import java.util.Scanner;
+
+import javax.imageio.ImageIO;
+
+import java.awt.image.BufferedImage;
 
 public class Client {
 	private static Socket socket;
@@ -58,11 +64,22 @@ public class Client {
 		String password = input.next();
 	
 		socket = new Socket(server, port);
+	
+		//DataInputStream in = new DataInputStream(socket.getInputStream());
 		
-		DataInputStream in = new DataInputStream(socket.getInputStream());
+		// Processing d'image
+		System.out.println("Provide Image Name : ");
+		String imageName = input.next();
+		File imageFile = new File(imageName+".jpg");
+		BufferedImage image = ImageIO.read(imageFile);
+		ImageIO.write(image, "JPG", socket.getOutputStream());
 		
-		String messageFromServer = in.readUTF();
-		System.out.println(messageFromServer);
+		/*BufferedImage processed = ImageIO.read(socket.getInputStream());
+		ImageIO.write(processed, "jpg", new File("test.jpg"));*/
+		//Fin processing d'image
+		
+		//String messageFromServer = in.readUTF();
+		//System.out.println(messageFromServer);
 				
 		input.close();
 		socket.close();

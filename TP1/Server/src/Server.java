@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -5,6 +6,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
+import javax.imageio.ImageIO;
 
 public class Server {
 	private static ServerSocket listener;
@@ -51,9 +53,6 @@ public class Server {
 		
 		listener.bind(new InetSocketAddress(serverIp, serverPort));
 		
-		System.out.println(serverAdress);
-		System.out.println(serverPort);
-		
 		try {
 			while(true) {
 				new ClientHandler(listener.accept(), clientNumber++).start();
@@ -78,8 +77,9 @@ public class Server {
 		
 		public void run() {
 			try {
-				DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-				out.writeUTF("message");
+                BufferedImage image=ImageIO.read(ImageIO.createImageInputStream(socket.getInputStream()));
+                ImageIO.write(Sobel.process(image), "jpg", socket.getOutputStream());
+				
 			} catch (IOException e){
 				System.out.println("Error");
 			} finally {

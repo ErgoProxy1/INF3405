@@ -8,12 +8,16 @@ import java.nio.file.Files;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import javax.imageio.ImageIO;
+import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.BufferedWriter;
 
 public class Client {
 	private static Socket socket;
 	private static Scanner input = new Scanner(System.in);
 	
-	// Demande à l'utilisateur d'entrer une adresse IP jusqu'à ce qu'elle soit valide
+	// Demande ï¿½ l'utilisateur d'entrer une adresse IP jusqu'ï¿½ ce qu'elle soit valide
 	public static String inputAndValidateIP() {
 		boolean isValid = false;
 		String ip = "";
@@ -29,7 +33,7 @@ public class Client {
 		return ip;
 	}
 	
-	// Demande à l'utilisateur d'entrer un numero de port jusqu'à ce qu'il soit valide
+	// Demande ï¿½ l'utilisateur d'entrer un numero de port jusqu'ï¿½ ce qu'il soit valide
 	public static int inputAndValidatePort() {
 		boolean isValid = false;
 		int port = 0;
@@ -50,7 +54,7 @@ public class Client {
 		}
 		return port;
 	}
-	
+
 	public static void sendImage(DataOutputStream out) throws IOException {
 		System.out.println("Provide Image Name : ");
 		String imageName = input.next();
@@ -92,11 +96,21 @@ public class Client {
 		String password = input.next();
 	
 		socket = new Socket(server, port);
-		
+
+		DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+		DataInputStream in = new DataInputStream(socket.getInputStream());
+		boolean connected = false;
+		out.writeUTF(username);
+		while (!connected){
+			out.writeUTF(password);
+			connected = in.readBoolean();
+			if (!connected){
+				System.out.println("The password is incorrect. \n Provide password :");
+				password = input.nextLine();
+			} 
+		}
 		while(true) {
-			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-			DataInputStream in = new DataInputStream(socket.getInputStream());
-			
+			System.out.println("You have been connected to the server");
 			System.out.println("A) Process Image\nB) Exit");
 			String selection = input.next().strip().toUpperCase();
 			

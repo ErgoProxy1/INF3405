@@ -8,6 +8,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 import javax.imageio.ImageIO;
 
@@ -44,7 +46,6 @@ public class Server {
 	}
 	
 	public static void main(String[] args) throws Exception{
-		int clientNumber = 0;
 		
 		String serverAdress = inputAndValidateIP();
 		
@@ -58,7 +59,7 @@ public class Server {
 		
 		try {
 			while(true) {
-				new ClientHandler(listener.accept(), clientNumber++).start();
+				new ClientHandler(listener.accept()).start();
 			}
 		} finally {
 			input.close();
@@ -68,12 +69,14 @@ public class Server {
 	
 	private static class ClientHandler extends Thread{
 		private Socket socket;
-		private int clientNumber;
 		private BufferedImage image;
+		private String username;
+		private String password;
 		
-		public ClientHandler(Socket socket, int clientNumber) {
+		public ClientHandler(Socket socket) {
 			this.socket = socket;
-			this.clientNumber = clientNumber;
+			this.username = "default";
+			this.password = "defaultpass";
 		}
 		
 		public void run() {
@@ -84,22 +87,12 @@ public class Server {
 					DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 					int userAction = in.read();
 					if(userAction == 1) {
-						int length = in.readInt();
-						byte[] fileContent = new byte[length];
-						in.readFully(fileContent);
-						ByteArrayInputStream byteStream = new ByteArrayInputStream(fileContent);
-						image = Sobel.process(ImageIO.read(byteStream));
+						String imageName = in.readUTF();
+						this.image = this.readImage(in, imageName);
 					} else if (userAction == 2) {
-						ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-						ImageIO.write(image , "jpg", byteStream);
-						byte[] processedBytes = byteStream.toByteArray();
-						out.writeInt(processedBytes.length);
-						out.flush();
-						out.write(processedBytes, 0, processedBytes.length);
-						out.flush();
-						byteStream.close();
+						this.sendImage(out);
 					} else if (userAction == 3) {
-						System.out.println("Client " + clientNumber + " has disconnected.");
+						System.out.println("Client " + username + " has disconnected.");
 						done = true;
 					}
 				}
@@ -111,8 +104,34 @@ public class Server {
 				} catch(IOException e) {
 					System.out.println("Socket Error");
 				}
-				System.out.println("Closed " + clientNumber);
+				System.out.println("Closed " + username);
 			}
+		}
+		
+		public BufferedImage readImage(DataInputStream in, String imageName) throws IOException {
+			int length = in.readInt();
+			byte[] fileContent = new byte[length];
+			in.readFully(fileContent);
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");  
+			LocalDateTime now = LocalDateTime.now();
+			System.out.println(
+				"[" + username + " - " + 
+				socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort() + " - " + 
+				dtf.format(now) + "] : Image " + imageName + " received for treatment."
+			);
+			ByteArrayInputStream byteStream = new ByteArrayInputStream(fileContent);
+			return Sobel.process(ImageIO.read(byteStream));
+		}
+		
+		public void sendImage(DataOutputStream out) throws IOException {
+			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+			ImageIO.write(this.image , "jpg", byteStream);
+			byte[] processedBytes = byteStream.toByteArray();
+			out.writeInt(processedBytes.length);
+			out.flush();
+			out.write(processedBytes, 0, processedBytes.length);
+			out.flush();
+			byteStream.close();
 		}
 	}
 }

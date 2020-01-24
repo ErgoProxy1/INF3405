@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import javax.imageio.ImageIO;
@@ -58,13 +60,18 @@ public class Client {
 		out.write(1);
 		out.flush();
 		
+		out.writeUTF(imageName);
+		out.flush();
+		
 		File imageFile = new File(imageName+".jpg");
 		byte[] fileContent = Files.readAllBytes(imageFile.toPath());
-		System.out.print(fileContent.length);
 		out.writeInt(fileContent.length);
 		out.flush();
 		out.write(fileContent, 0, fileContent.length);
 		out.flush();
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");  
+		LocalDateTime now = LocalDateTime.now();
+		System.out.println("[" + dtf.format(now) + "]" + " Image " + imageName + " sent to server.");
 	}
 	
 	public static void getImage(String name, DataOutputStream out, DataInputStream in) throws IOException {
@@ -77,6 +84,7 @@ public class Client {
 		ByteArrayInputStream byteStream = new ByteArrayInputStream(processedBytes);
 		
 		ImageIO.write(ImageIO.read(byteStream), "jpg", new File(name+".jpg"));
+		System.out.println("File " + name + " created under " + System.getProperty("user.dir"));
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -97,7 +105,7 @@ public class Client {
 			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 			DataInputStream in = new DataInputStream(socket.getInputStream());
 			
-			System.out.println("A) Process Image\nB) Exit");
+			System.out.println("\n***************\nA) Process Image\nB) Exit");
 			String selection = input.next().strip().toUpperCase();
 			
 			if(selection.matches("A")) {

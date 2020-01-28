@@ -3,6 +3,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -44,6 +48,48 @@ public class Server {
 		}
 		return port;
 	}
+
+	public static boolean readFile(String name, String password) {
+		try {
+			FileReader reader = new FileReader("Database.txt");
+			BufferedReader bufferedReader = new BufferedReader(reader);
+	
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+				if (line.equals(name)) {
+					if (bufferedReader.readLine().equals(password)){
+						bufferedReader.close();
+						return true;
+					} else {
+						bufferedReader.close();
+						return false;
+					}
+				}
+			}
+			reader.close();
+			addNewUser(name, password);
+			return true;
+	
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("An error occured while accessing the database");
+			return false;
+		}
+	}
+		
+	public static void addNewUser(String name, String password) {
+		try {
+			FileWriter writer = new FileWriter("Database.txt", true);
+			BufferedWriter bufferedWriter = new BufferedWriter(writer);
+			bufferedWriter.write(name);
+			bufferedWriter.newLine();
+			bufferedWriter.write(password);
+			bufferedWriter.newLine();
+			bufferedWriter.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public static void main(String[] args) throws Exception{
 		
@@ -81,10 +127,19 @@ public class Server {
 		
 		public void run() {
 			try {
+				boolean connected = false;
 				boolean done = false;
+				DataInputStream in = new DataInputStream(socket.getInputStream());
+				DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+				while(!connected) {
+					username = in.readUTF();
+					password = in.readUTF();
+					connected = readFile(username, password);
+					out.writeBoolean(connected);
+					out.flush();
+				}
+				
 				while(!done) {
-					DataInputStream in = new DataInputStream(socket.getInputStream());
-					DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 					int userAction = in.read();
 					if(userAction == 1) {
 						String imageName = in.readUTF();

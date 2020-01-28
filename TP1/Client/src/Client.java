@@ -3,6 +3,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
@@ -21,12 +22,12 @@ public class Client {
 		String ip = "";
 		String prompt = "Provide IP Address : ";
 		while(!isValid) {
-			System.out.println(prompt);
+			System.out.print(prompt);
 			ip = input.next().strip();
 			isValid = ip.matches(
 			"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 			);
-			prompt = "IP Address format is incorrect!\nProvide IP Address : ";
+			prompt = "IP Address format is incorrect!\n\nProvide IP Address : ";
 		}
 		return ip;
 	}
@@ -37,7 +38,7 @@ public class Client {
 		int port = 0;
 		String prompt = "Provide port number (5000-5050) : ";
 		while(!isValid) {
-			System.out.println(prompt);
+			System.out.print(prompt);
 			try {
 				input.nextLine();
 				port = input.nextInt();
@@ -48,13 +49,13 @@ public class Client {
 				continue;
 			}
 			isValid = (port >= 5000) && (port <= 5050);
-			prompt = "Port number not in range\nProvide port number (5000-5050) : ";
+			prompt = "Port number not in range\n\nProvide port number (5000-5050) : ";
 		}
 		return port;
 	}
 	
 	public static void sendImage(DataOutputStream out) throws IOException {
-		System.out.println("Provide Image Name : ");
+		System.out.print("\nProvide Image Name : ");
 		String imageName = input.next();
 		
 		out.write(1);
@@ -71,7 +72,7 @@ public class Client {
 		out.flush();
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");  
 		LocalDateTime now = LocalDateTime.now();
-		System.out.println("[" + dtf.format(now) + "]" + " Image " + imageName + " sent to server.");
+		System.out.print("[" + dtf.format(now) + "]" + " Image " + imageName + " sent to server.\n\n");
 	}
 	
 	public static void getImage(String name, DataOutputStream out, DataInputStream in) throws IOException {
@@ -84,33 +85,44 @@ public class Client {
 		ByteArrayInputStream byteStream = new ByteArrayInputStream(processedBytes);
 		
 		ImageIO.write(ImageIO.read(byteStream), "jpg", new File(name+".jpg"));
-		System.out.println("File " + name + " created under " + System.getProperty("user.dir"));
+		System.out.print("File " + name + " created under " + System.getProperty("user.dir") + "'\n\n");
 	}
 	
 	public static void main(String[] args) throws Exception {
 		
-		String server = inputAndValidateIP();
+		//Attente d'une connection valide
+		while(true) {
+			try {
+				String server = inputAndValidateIP();
+				
+				int port = inputAndValidatePort();
+				
+				socket = new Socket(server, port);
+				break;
+				
+			} catch(ConnectException e) {
+				System.out.print("\nConnection Refused! No server found on IP Address and/or Port Number\n\n");
+				continue;
+			}
+		}
 		
-		int port = inputAndValidatePort();
-		
-		System.out.println("Provide Username : ");
+		System.out.print("Provide Username : ");
 		String username = input.next();
 		
-		System.out.println("Provide Password : ");
+		System.out.print("Provide Password : ");
 		String password = input.next();
-	
-		socket = new Socket(server, port);
 		
+		//Loop du program en attente d'instructions de l'utilisateur
 		while(true) {
 			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 			DataInputStream in = new DataInputStream(socket.getInputStream());
 			
-			System.out.println("\n***************\nA) Process Image\nB) Exit");
+			System.out.print("\n***************\nA) Process Image\nB) Exit\nSelection: ");
 			String selection = input.next().strip().toUpperCase();
 			
 			if(selection.matches("A")) {
 				sendImage(out);
-				System.out.println("Provide Generated Image Name : ");
+				System.out.print("Provide Generated Image Name : ");
 				String newName = input.next();
 				getImage(newName, out, in);
 			} else if(selection.matches("B")) {
@@ -118,10 +130,11 @@ public class Client {
 				out.close();
 				break;
 			} else {
-				System.out.println("Invalid Input");
+				System.out.print("Invalid Input\n\n");
 				continue;
 			}
-		}	
+		}
+		System.out.print("\nGoodbye!\n");
 		input.close();
 		socket.close();
 	}

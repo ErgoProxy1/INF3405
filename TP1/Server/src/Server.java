@@ -22,12 +22,12 @@ public class Server {
 		String ip = "";
 		String prompt = "Provide IP Address : ";
 		while(!isValid) {
-			System.out.println(prompt);
+			System.out.print(prompt);
 			ip = input.next().strip();
 			isValid = ip.matches(
 			"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 			);
-			prompt = "IP Address format is incorrect!\nProvide IP Address : ";
+			prompt = "IP Address format is incorrect!\nProvide IP Address : \n";
 		}
 		return ip;
 	}
@@ -37,10 +37,10 @@ public class Server {
 		int port = 5000;
 		String prompt = "Provide port number (5000-5050) : ";
 		while(!isValid) {
-			System.out.println(prompt);
+			System.out.print(prompt);
 			port = input.nextInt();
 			isValid = (port >= 5000) && (port <= 5050);
-			prompt = "Port number not in range\nProvide port number (5000-5050) : ";
+			prompt = "Port number not in range\nProvide port number (5000-5050) : \n";
 		}
 		return port;
 	}
@@ -92,7 +92,7 @@ public class Server {
 					} else if (userAction == 2) {
 						this.sendImage(out);
 					} else if (userAction == 3) {
-						System.out.println("Client " + username + " has disconnected.");
+						System.out.println("\nClient " + username + " has disconnected.");
 						done = true;
 					}
 				}
@@ -114,10 +114,10 @@ public class Server {
 			in.readFully(fileContent);
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");  
 			LocalDateTime now = LocalDateTime.now();
-			System.out.println(
-				"[" + username + " - " + 
+			System.out.print(
+				"\n\n[" + username + " - " + 
 				socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort() + " - " + 
-				dtf.format(now) + "] : Image " + imageName + " received for treatment."
+				dtf.format(now) + "] : Image " + imageName + " received for treatment.\n\n"
 			);
 			ByteArrayInputStream byteStream = new ByteArrayInputStream(fileContent);
 			return Sobel.process(ImageIO.read(byteStream));

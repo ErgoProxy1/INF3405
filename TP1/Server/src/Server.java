@@ -48,7 +48,8 @@ public class Server {
 		}
 		return port;
 	}
-
+	
+	// Lire le fichier de bd 
 	public static boolean readFile(String name, String password) {
 		try {
 			FileReader reader = new FileReader("Database.txt");

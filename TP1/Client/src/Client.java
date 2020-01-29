@@ -11,10 +11,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import javax.imageio.ImageIO;
-import java.io.FileWriter;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.BufferedWriter;
 
 public class Client {
 	private static Socket socket;

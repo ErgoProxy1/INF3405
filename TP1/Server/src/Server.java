@@ -3,6 +3,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -61,7 +62,9 @@ public class Server {
 	// Lire le fichier de bd 
 	public static boolean readFile(String name, String password) {
 		try {
-			FileReader reader = new FileReader("Database.txt");
+			File file = new File("Database.txt");
+			file.createNewFile();
+			FileReader reader = new FileReader(file);
 			BufferedReader bufferedReader = new BufferedReader(reader);
 	
 			String line;

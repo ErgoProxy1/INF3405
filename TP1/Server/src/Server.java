@@ -14,6 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 import javax.imageio.ImageIO;
 
@@ -31,20 +32,28 @@ public class Server {
 			isValid = ip.matches(
 			"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 			);
-			prompt = "IP Address format is incorrect!\nProvide IP Address : \n";
+			prompt = "Le format de l'adresse IP est incorrect!\n\nEntrez l'adresse IP: ";
 		}
 		return ip;
 	}
 	
 	public static int inputAndValidatePort() {
 		boolean isValid = false;
-		int port = 5000;
-		String prompt = "Provide port number (5000-5050) : ";
-		while(!isValid) {
+		int port = 0;
+		String prompt = "Entrez le numero du port (5000-5050): ";
+		while (!isValid) {
 			System.out.print(prompt);
-			port = input.nextInt();
+			try {
+				input.nextLine();
+				port = input.nextInt();
+			} catch (InputMismatchException e) {
+				isValid = false;
+				port = 0;
+				prompt = "Donnees invalides!\nEntrez le numero du port (5000-5050): ";
+				continue;
+			}
 			isValid = (port >= 5000) && (port <= 5050);
-			prompt = "Port number not in range\nProvide port number (5000-5050) : \n";
+			prompt = "Le numero du port n'est pas dans l'intervalle permise\n\nEntrez le numero du port (5000-5050): ";
 		}
 		return port;
 	}
@@ -73,7 +82,7 @@ public class Server {
 	
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("An error occured while accessing the database");
+			System.out.println("Erreur lors de l'acces a la base de donnes");
 			return false;
 		}
 	}
@@ -154,19 +163,19 @@ public class Server {
 					} else if (userAction == 2) {
 						this.sendImage(out);
 					} else if (userAction == 3) {
-						System.out.println("\nClient " + username + " has disconnected.");
+						System.out.println("\nClient " + username + " a ete deconnecte.");
 						done = true;
 					}
 				}
 			} catch (IOException e){
-				System.out.println("Error");
+				System.out.println("Erreur");
 			} finally {
 				try {
 					socket.close();
 				} catch(IOException e) {
-					System.out.println("Socket Error");
+					System.out.println("Erreur de socket");
 				}
-				System.out.println("Closed " + username);
+				System.out.println("Fermeture de l'instance de " + username);
 			}
 		}
 		
@@ -179,7 +188,7 @@ public class Server {
 			System.out.print(
 				"\n\n[" + username + " - " + 
 				socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort() + " - " + 
-				dtf.format(now) + "] : Image " + imageName + " received for treatment.\n\n"
+				dtf.format(now) + "] : L'image " + imageName + " a ete recu pour traitement.\n\n"
 			);
 			ByteArrayInputStream byteStream = new ByteArrayInputStream(fileContent);
 			return Sobel.process(ImageIO.read(byteStream));

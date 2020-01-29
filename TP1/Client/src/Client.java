@@ -31,7 +31,7 @@ public class Client {
 			ip = input.next().strip();
 			isValid = ip.matches(
 					"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
-			prompt = "IP Address format is incorrect!\n\nProvide IP Address : ";
+			prompt = "Le format de l'adresse IP est incorrect!\n\nEntrez l'adresse IP: ";
 		}
 		return ip;
 	}
@@ -41,7 +41,7 @@ public class Client {
 	public static int inputAndValidatePort() {
 		boolean isValid = false;
 		int port = 0;
-		String prompt = "Provide port number (5000-5050): ";
+		String prompt = "Entrez le numero du port (5000-5050): ";
 		while (!isValid) {
 			System.out.print(prompt);
 			try {
@@ -50,23 +50,26 @@ public class Client {
 			} catch (InputMismatchException e) {
 				isValid = false;
 				port = 0;
-				prompt = "Input was invalid\nProvide port number (5000-5050) : ";
+				prompt = "Donnees invalides!\nEntrez le numero du port (5000-5050): ";
 				continue;
 			}
 			isValid = (port >= 5000) && (port <= 5050);
-			prompt = "Port number not in range\n\nProvide port number (5000-5050) : ";
+			prompt = "Le numero du port n'est pas dans l'intervalle permise\n\nEntrez le numero du port (5000-5050): ";
 		}
 		return port;
 	}
 	
-	public static String inputAndValidateImageName() {
+	public static String inputAndValidateImageName(boolean creatingImage) {
 		boolean nameFormatValid = false;
 		String imageName = "";
 		while (!nameFormatValid) {
 			imageName = input.next();
 			nameFormatValid = imageName.matches("([\\w]+(\\.(?i)(jpg|png|gif|bmp))$)");
 			if (!nameFormatValid) {
-				System.out.print("\nNot a valid image file!\n\nProvide Image File Name (Supports .jpg and .png): ");
+				if(creatingImage)
+					System.out.print("\nVeuillez entrer un nom d'image valide!\n\nEntrez le nom de la nouvelle image(.jpg ou .png): ");
+				else
+					System.out.print("\nVeuillez entrer un nom d'image valide!\n\nEntrez le nom de l'image(.jpg ou .png): ");
 				input.nextLine();
 			}
 		}
@@ -74,16 +77,22 @@ public class Client {
 	}
 
 	public static void sendImage(DataOutputStream out) throws IOException {
-		System.out.print("\nProvide Image File Name (Supports .jpg and .png): ");
-		String imageName = inputAndValidateImageName();
-
-		out.write(1);
-		out.flush();
-
-		out.writeUTF(imageName);
-		out.flush();
+		System.out.print("\nEntrez le nom de l'image(.jpg ou .png): ");
+		String imageName = inputAndValidateImageName(false);
 
 		File imageFile = new File(imageName);
+		while(!imageFile.exists()) {
+			System.out.print("Le fichier n'existe pas!\nEntrez le nom de l'image(.jpg ou .png): ");
+			imageName = inputAndValidateImageName(false);
+			imageFile = new File(imageName);
+		}
+		
+		out.write(1);
+		out.flush();
+		
+		out.writeUTF(imageName);
+		out.flush();
+		
 		byte[] fileContent = Files.readAllBytes(imageFile.toPath());
 		out.writeInt(fileContent.length);
 		out.flush();
@@ -91,7 +100,7 @@ public class Client {
 		out.flush();
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");
 		LocalDateTime now = LocalDateTime.now();
-		System.out.print("[" + dtf.format(now) + "]" + " Image " + imageName + " sent to server.\n\n");
+		System.out.print("[" + dtf.format(now) + "]" + " L'image " + imageName + " a ete envoye au serveur.\n\n");
 	}
 
 	public static void getImage(String name, DataOutputStream out, DataInputStream in) throws IOException {
@@ -106,7 +115,7 @@ public class Client {
 		ByteArrayInputStream byteStream = new ByteArrayInputStream(processedBytes);
 		
 		ImageIO.write(ImageIO.read(byteStream), imageNameParts[1], new File(name));
-		System.out.print("File " + name + " created under " + System.getProperty("user.dir") + "'\n\n");
+		System.out.print("Fichier " + name + " genere sous " + System.getProperty("user.dir") + "\n\n");
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -122,7 +131,7 @@ public class Client {
 				break;
 
 			} catch (ConnectException e) {
-				System.out.print("\nConnection Refused! No server found on IP Address and/or Port Number\n\n");
+				System.out.print("\nConnection Refusee! Auncun serveur correspondant a l'adresse IP et/ou le numero du port n'a ete trouve\n\n");
 				continue;
 			}
 		}
@@ -133,7 +142,7 @@ public class Client {
 		// Boucle d'attente de connection à un compte utilisateur
 		boolean connected = false;
 		while (!connected) {
-			System.out.print("Provide Username : ");
+			System.out.print("Entrez le nom d'utilisateur : ");
 			String username = input.next();
 
 			System.out.print("Provide Password : ");
@@ -145,34 +154,34 @@ public class Client {
 			out.flush();
 			connected = in.readBoolean();
 			if (!connected) {
-				System.out.println("The password is incorrect!\r\n" + " Erreur dans la saisie du mot de passe »");
+				System.out.print("\nErreur dans la saisie du mot de passe. Le nom d'utilisateur existe deja sous un autre mot de passe\n");
 				continue;
 			}
 		}
-		System.out.println("You have been connected to the server");
+		System.out.println("La connection au serveur a reussi");
 
 		// Boucle d'attente des instructions de l'utilisateur
 		while (true) {
 
-			System.out.print("\n***************\nA) Process Image\nB) Exit\nSelection: ");
+			System.out.print("\n***************\nA) Traiter une image\nB) Deconnecter et quitter\nSelection: ");
 
 			String selection = input.next().strip().toUpperCase();
 
 			if (selection.matches("A")) {
 				sendImage(out);
-				System.out.print("Provide Generated Image Name : ");
-				String newName = inputAndValidateImageName();
+				System.out.print("Entrez le nom de la nouvelle image(.jpg ou .png): ");
+				String newName = inputAndValidateImageName(true);
 				getImage(newName, out, in);
 			} else if (selection.matches("B")) {
 				out.write(3);
 				out.close();
 				break;
 			} else {
-				System.out.print("Invalid Input\n\n");
+				System.out.print("Saisie invalide\n\n");
 				continue;
 			}
 		}
-		System.out.print("\nGoodbye!\n");
+		System.out.print("\nAu Revoir!\n");
 		input.close();
 		socket.close();
 	}

@@ -20,12 +20,12 @@ public class Client {
 	private static Socket socket;
 	private static Scanner input = new Scanner(System.in);
 
-	// Demande ï¿½ l'utilisateur d'entrer une adresse IP jusqu'ï¿½ ce qu'elle soit
+	// Demande a l'utilisateur d'entrer une adresse IP jusqu'a ce qu'elle soit
 	// valide
 	public static String inputAndValidateIP() {
 		boolean isValid = false;
 		String ip = "";
-		String prompt = "Provide IP Address : ";
+		String prompt = "Entrez l'adresse IP: ";
 		while (!isValid) {
 			System.out.print(prompt);
 			ip = input.next().strip();
@@ -36,12 +36,12 @@ public class Client {
 		return ip;
 	}
 
-	// Demande ï¿½ l'utilisateur d'entrer un numero de port jusqu'ï¿½ ce qu'il soit
+	// Demande a l'utilisateur d'entrer un numero de port jusqu'a ce qu'il soit
 	// valide
 	public static int inputAndValidatePort() {
 		boolean isValid = false;
 		int port = 0;
-		String prompt = "Provide port number (5000-5050) : ";
+		String prompt = "Provide port number (5000-5050): ";
 		while (!isValid) {
 			System.out.print(prompt);
 			try {
@@ -58,10 +58,24 @@ public class Client {
 		}
 		return port;
 	}
+	
+	public static String inputAndValidateImageName() {
+		boolean nameFormatValid = false;
+		String imageName = "";
+		while (!nameFormatValid) {
+			imageName = input.next();
+			nameFormatValid = imageName.matches("([\\w]+(\\.(?i)(jpg|png|gif|bmp))$)");
+			if (!nameFormatValid) {
+				System.out.print("\nNot a valid image file!\n\nProvide Image File Name (Supports .jpg and .png): ");
+				input.nextLine();
+			}
+		}
+		return imageName;
+	}
 
 	public static void sendImage(DataOutputStream out) throws IOException {
-		System.out.print("\nProvide Image Name : ");
-		String imageName = input.next();
+		System.out.print("\nProvide Image File Name (Supports .jpg and .png): ");
+		String imageName = inputAndValidateImageName();
 
 		out.write(1);
 		out.flush();
@@ -69,7 +83,7 @@ public class Client {
 		out.writeUTF(imageName);
 		out.flush();
 
-		File imageFile = new File(imageName + ".jpg");
+		File imageFile = new File(imageName);
 		byte[] fileContent = Files.readAllBytes(imageFile.toPath());
 		out.writeInt(fileContent.length);
 		out.flush();
@@ -83,19 +97,21 @@ public class Client {
 	public static void getImage(String name, DataOutputStream out, DataInputStream in) throws IOException {
 		out.write(2);
 		out.flush();
+		
+		String imageNameParts[] = name.split("\\.");
 
 		int length = in.readInt();
 		byte[] processedBytes = new byte[length];
 		in.readFully(processedBytes);
 		ByteArrayInputStream byteStream = new ByteArrayInputStream(processedBytes);
-
-		ImageIO.write(ImageIO.read(byteStream), "jpg", new File(name + ".jpg"));
+		
+		ImageIO.write(ImageIO.read(byteStream), imageNameParts[1], new File(name));
 		System.out.print("File " + name + " created under " + System.getProperty("user.dir") + "'\n\n");
 	}
 
 	public static void main(String[] args) throws Exception {
 
-		// Attente d'une connection valide
+		// Boucle d'attente d'une connection valide
 		while (true) {
 			try {
 				String server = inputAndValidateIP();
@@ -114,6 +130,7 @@ public class Client {
 		DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 		DataInputStream in = new DataInputStream(socket.getInputStream());
 
+		// Boucle d'attente de connection à un compte utilisateur
 		boolean connected = false;
 		while (!connected) {
 			System.out.print("Provide Username : ");
@@ -133,7 +150,8 @@ public class Client {
 			}
 		}
 		System.out.println("You have been connected to the server");
-		// Loop du program en attente d'instructions de l'utilisateur
+
+		// Boucle d'attente des instructions de l'utilisateur
 		while (true) {
 
 			System.out.print("\n***************\nA) Process Image\nB) Exit\nSelection: ");
@@ -143,7 +161,7 @@ public class Client {
 			if (selection.matches("A")) {
 				sendImage(out);
 				System.out.print("Provide Generated Image Name : ");
-				String newName = input.next();
+				String newName = inputAndValidateImageName();
 				getImage(newName, out, in);
 			} else if (selection.matches("B")) {
 				out.write(3);

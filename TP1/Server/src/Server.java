@@ -117,6 +117,7 @@ public class Server {
 	private static class ClientHandler extends Thread{
 		private Socket socket;
 		private BufferedImage image;
+		private String imageName;
 		private String username;
 		private String password;
 		
@@ -140,11 +141,16 @@ public class Server {
 					out.flush();
 				}
 				
+				/* Boucle des actions du clients. 
+				 * 1) Reception et lecture d'une image du client
+				 * 2) Renvoyer l'image traiter au client
+				 * 3) Deconnecter le client du serveur
+				 */
 				while(!done) {
 					int userAction = in.read();
 					if(userAction == 1) {
-						String imageName = in.readUTF();
-						this.image = this.readImage(in, imageName);
+						imageName = in.readUTF();
+						this.image = this.readImage(in);
 					} else if (userAction == 2) {
 						this.sendImage(out);
 					} else if (userAction == 3) {
@@ -164,7 +170,7 @@ public class Server {
 			}
 		}
 		
-		public BufferedImage readImage(DataInputStream in, String imageName) throws IOException {
+		public BufferedImage readImage(DataInputStream in) throws IOException {
 			int length = in.readInt();
 			byte[] fileContent = new byte[length];
 			in.readFully(fileContent);
@@ -181,7 +187,8 @@ public class Server {
 		
 		public void sendImage(DataOutputStream out) throws IOException {
 			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-			ImageIO.write(this.image , "jpg", byteStream);
+			String imageNameParts[] = this.imageName.split("\\.");
+			ImageIO.write(this.image, imageNameParts[1], byteStream);
 			byte[] processedBytes = byteStream.toByteArray();
 			out.writeInt(processedBytes.length);
 			out.flush();

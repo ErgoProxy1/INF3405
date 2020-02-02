@@ -99,6 +99,10 @@ public class Server {
 			bufferedWriter.write(password);
 			bufferedWriter.newLine();
 			bufferedWriter.close();
+			
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");  
+			LocalDateTime now = LocalDateTime.now();
+			System.out.print("\n[ " + dtf.format(now) + " ] Utilisateur " + name + " ajoute a la base de donnes.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -152,7 +156,10 @@ public class Server {
 					out.writeBoolean(connected);
 					out.flush();
 				}
-				
+				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");  
+				LocalDateTime now = LocalDateTime.now();
+				System.out.print("\n\n[" + socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort() + " - " + 
+				dtf.format(now) + "] : L'utilisateur " + username + " a ete connecte.\n\n");
 				/* Boucle des actions du clients. 
 				 * 1) Reception et lecture d'une image du client
 				 * 2) Renvoyer l'image traiter au client
@@ -166,7 +173,10 @@ public class Server {
 					} else if (userAction == 2) {
 						this.sendImage(out);
 					} else if (userAction == 3) {
-						System.out.println("\nClient " + username + " a ete deconnecte.");
+						dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");  
+						now = LocalDateTime.now();
+						System.out.print("\n\n[" + socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort() + " - " + 
+						dtf.format(now) + "] : Client " + username + " a ete deconnecte.");
 						done = true;
 					}
 				}
@@ -178,7 +188,7 @@ public class Server {
 				} catch(IOException e) {
 					System.out.println("Erreur de socket");
 				}
-				System.out.println("Fermeture de l'instance de " + username);
+				System.out.println("\nFermeture de l'instance de " + username);
 			}
 		}
 		
@@ -191,7 +201,7 @@ public class Server {
 			System.out.print(
 				"\n\n[" + username + " - " + 
 				socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort() + " - " + 
-				dtf.format(now) + "] : L'image " + imageName + " a ete recu pour traitement.\n\n"
+				dtf.format(now) + "] : L'image " + imageName + " a ete recu pour traitement.\n"
 			);
 			ByteArrayInputStream byteStream = new ByteArrayInputStream(fileContent);
 			return Sobel.process(ImageIO.read(byteStream));

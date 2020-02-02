@@ -138,10 +138,10 @@ public class Client {
 		// Boucle d'attente de connection à un compte utilisateur
 		boolean connected = false;
 		while (!connected) {
-			System.out.print("Entrez le nom d'utilisateur : ");
+			System.out.print("Entrez le nom d'utilisateur: ");
 			String username = input.next();
 
-			System.out.print("Provide Password : ");
+			System.out.print("Entrez le mot de passe: ");
 			String password = input.next();
 
 			out.writeUTF(username);

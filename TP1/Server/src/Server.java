@@ -26,7 +26,7 @@ public class Server {
 	public static String inputAndValidateIP() {
 		boolean isValid = false;
 		String ip = "";
-		String prompt = "Provide IP Address : ";
+		String prompt = "Entrez l'adresse IP: ";
 		while(!isValid) {
 			System.out.print(prompt);
 			ip = input.next().strip();

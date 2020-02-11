@@ -23,6 +23,8 @@ public class Server {
 	private static ServerSocket listener;
 	private static Scanner input = new Scanner(System.in);
 	
+	/* Demande a l'utilisateur d'entrer une adresse IP jusqu'a ce qu'elle soit 
+	 * valide */
 	public static String inputAndValidateIP() {
 		boolean isValid = false;
 		String ip = "";
@@ -38,6 +40,8 @@ public class Server {
 		return ip;
 	}
 	
+	/* Demande a l'utilisateur d'entrer un numero de port jusqu'a ce qu'il soit
+	 * valide */
 	public static int inputAndValidatePort() {
 		boolean isValid = false;
 		int port = 0;
@@ -59,11 +63,11 @@ public class Server {
 		return port;
 	}
 	
-	// Lire le fichier de bd 
-	public static boolean readFile(String name, String password) {
+	/* Lit le fichier de BD et authentifie l'utilisateur. Ajoute un nouveau utilisateur si non-existant.*/
+	public static boolean readDBFile(String name, String password) {
 		try {
 			File file = new File("Database.txt");
-			file.createNewFile();
+			file.createNewFile(); // Cree seulement si le fichier n'existe pas
 			FileReader reader = new FileReader(file);
 			BufferedReader bufferedReader = new BufferedReader(reader);
 	
@@ -89,7 +93,8 @@ public class Server {
 			return false;
 		}
 	}
-		
+	
+	/* Ajoute un nouvel utilisateur a la BD */
 	public static void addNewUser(String name, String password) {
 		try {
 			FileWriter writer = new FileWriter("Database.txt", true);
@@ -149,17 +154,21 @@ public class Server {
 				boolean done = false;
 				DataInputStream in = new DataInputStream(socket.getInputStream());
 				DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+				
+				/* Boucle d'attente d'authentification de l'utilisateur*/
 				while(!connected) {
 					username = in.readUTF();
 					password = in.readUTF();
-					connected = readFile(username, password);
+					connected = readDBFile(username, password);
 					out.writeBoolean(connected);
 					out.flush();
 				}
+				
 				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");  
 				LocalDateTime now = LocalDateTime.now();
 				System.out.print("\n\n[" + socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort() + " - " + 
 				dtf.format(now) + "] : L'utilisateur " + username + " a ete connecte.\n\n");
+				
 				/* Boucle des actions du clients. 
 				 * 1) Reception et lecture d'une image du client
 				 * 2) Renvoyer l'image traiter au client
@@ -192,6 +201,7 @@ public class Server {
 			}
 		}
 		
+		/* Lit les donnees d'images envoyer par la client et applique le filtre sobel */
 		public BufferedImage readImage(DataInputStream in) throws IOException {
 			int length = in.readInt();
 			byte[] fileContent = new byte[length];
@@ -207,6 +217,7 @@ public class Server {
 			return Sobel.process(ImageIO.read(byteStream));
 		}
 		
+		/* Envoie les donnees d'images traiter vers le client */
 		public void sendImage(DataOutputStream out) throws IOException {
 			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 			String imageNameParts[] = this.imageName.split("\\.");

@@ -16,8 +16,8 @@ public class Client {
 	private static Socket socket;
 	private static Scanner input = new Scanner(System.in);
 
-	// Demande a l'utilisateur d'entrer une adresse IP jusqu'a ce qu'elle soit
-	// valide
+	/* Demande a l'utilisateur d'entrer une adresse IP jusqu'a ce qu'elle soit 
+	 * valide */
 	public static String inputAndValidateIP() {
 		boolean isValid = false;
 		String ip = "";
@@ -32,8 +32,8 @@ public class Client {
 		return ip;
 	}
 
-	// Demande a l'utilisateur d'entrer un numero de port jusqu'a ce qu'il soit
-	// valide
+	/* Demande a l'utilisateur d'entrer un numero de port jusqu'a ce qu'il soit
+	 * valide */
 	public static int inputAndValidatePort() {
 		boolean isValid = false;
 		int port = 0;
@@ -55,6 +55,7 @@ public class Client {
 		return port;
 	}
 	
+	/* Verifie que les noms d'image entrer par l'utilisateur sont valides*/
 	public static String inputAndValidateImageName(boolean creatingImage) {
 		boolean nameFormatValid = false;
 		String imageName = "";
@@ -71,7 +72,8 @@ public class Client {
 		}
 		return imageName;
 	}
-
+	
+	/* Lit et envoie les donnees de l'image choisie au serveur*/
 	public static void sendImage(DataOutputStream out) throws IOException {
 		System.out.print("\nEntrez le nom de l'image(.jpg ou .png): ");
 		String imageName = inputAndValidateImageName(false);
@@ -98,7 +100,9 @@ public class Client {
 		LocalDateTime now = LocalDateTime.now();
 		System.out.print("[" + dtf.format(now) + "]" + " L'image " + imageName + " a ete envoye au serveur.\n\n");
 	}
-
+	
+	/* Recoie les donnees de l'image traiter chez le server et les places 
+	 * dans un nouveau fichier*/
 	public static void getImage(String name, DataOutputStream out, DataInputStream in) throws IOException {
 		out.write(2);
 		out.flush();

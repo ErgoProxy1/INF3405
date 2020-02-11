@@ -84,7 +84,8 @@ public class Client {
 
 		File imageFile = new File(imageName);
 		while(!imageFile.exists()) {
-			System.out.print("\nLe fichier n'existe pas!\n\nEntrez le nom de l'image(.jpg ou .png): ");
+			System.out.print("\nLe fichier n'existe pas!\n\n"
+					+ "Entrez le nom de l'image(.jpg, .png, .bmp ou .gif): ");
 			imageName = inputAndValidateImageName(false);
 			imageFile = new File(imageName);
 		}

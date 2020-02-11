@@ -89,7 +89,7 @@ public class Server {
 	
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("Erreur lors de l'acces a la base de donnes");
+			System.out.println("Erreur lors de l'acces a la base de donnees");
 			return false;
 		}
 	}
@@ -107,7 +107,7 @@ public class Server {
 			
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");  
 			LocalDateTime now = LocalDateTime.now();
-			System.out.print("\n[ " + dtf.format(now) + " ] Utilisateur " + name + " ajoute a la base de donnes.");
+			System.out.print("\n[ " + dtf.format(now) + " ] Utilisateur " + name + " ajoute a la base de donnees.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

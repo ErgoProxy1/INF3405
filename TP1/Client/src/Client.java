@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -61,12 +62,15 @@ public class Client {
 		String imageName = "";
 		while (!nameFormatValid) {
 			imageName = input.next();
-			nameFormatValid = imageName.matches("([\\w]+(\\.(?i)(jpg|png|gif|bmp))$)");
+			nameFormatValid = imageName.matches("([\\w]+(\\.(?i)(jpg|png|gif|bmp|jpeg))$)");
 			if (!nameFormatValid) {
-				if(creatingImage)
-					System.out.print("\nVeuillez entrer un nom d'image valide!\n\nEntrez le nom de la nouvelle image(.jpg ou .png): ");
-				else
-					System.out.print("\nVeuillez entrer un nom d'image valide!\n\nEntrez le nom de l'image(.jpg ou .png): ");
+				if(creatingImage) {
+					System.out.print("\nVeuillez entrer un nom d'image valide!\n\n"
+							+ "Entrez le nom de la nouvelle image(.jpg, .png, .bmp ou .gif): ");
+				} else {
+					System.out.print("\nVeuillez entrer un nom d'image valide!\n\n"
+							+ "Entrez le nom de l'image(.jpg, .png, .bmp ou .gif): ");
+				}
 				input.nextLine();
 			}
 		}
@@ -75,12 +79,12 @@ public class Client {
 	
 	/* Lit et envoie les donnees de l'image choisie au serveur*/
 	public static void sendImage(DataOutputStream out) throws IOException {
-		System.out.print("\nEntrez le nom de l'image(.jpg ou .png): ");
+		System.out.print("\nEntrez le nom de l'image(.jpg, .png, .bmp ou .gif): ");
 		String imageName = inputAndValidateImageName(false);
 
 		File imageFile = new File(imageName);
 		while(!imageFile.exists()) {
-			System.out.print("Le fichier n'existe pas!\nEntrez le nom de l'image(.jpg ou .png): ");
+			System.out.print("\nLe fichier n'existe pas!\n\nEntrez le nom de l'image(.jpg ou .png): ");
 			imageName = inputAndValidateImageName(false);
 			imageFile = new File(imageName);
 		}
@@ -119,67 +123,73 @@ public class Client {
 	}
 
 	public static void main(String[] args) throws Exception {
-
-		// Boucle d'attente d'une connection valide
-		while (true) {
-			try {
-				String server = inputAndValidateIP();
-
-				int port = inputAndValidatePort();
-
-				socket = new Socket(server, port);
-				break;
-
-			} catch (ConnectException e) {
-				System.out.print("\nConnection Refusee! Auncun serveur correspondant a l'adresse IP et/ou le numero du port n'a ete trouve\n\n");
-				continue;
+		try {
+			// Boucle d'attente d'une connection valide
+			while (true) {
+				try {
+					String server = inputAndValidateIP();
+	
+					int port = inputAndValidatePort();
+	
+					socket = new Socket(server, port);
+					break;
+	
+				} catch (ConnectException e) {
+					System.out.print("\nConnection Refusee! Auncun serveur correspondant a "
+							+ "l'adresse IP et/ou le numero du port n'a ete trouve\n\n");
+					continue;
+				}
 			}
-		}
-
-		DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-		DataInputStream in = new DataInputStream(socket.getInputStream());
-
-		// Boucle d'attente de connection à un compte utilisateur
-		boolean connected = false;
-		while (!connected) {
-			System.out.print("Entrez le nom d'utilisateur: ");
-			String username = input.next();
-
-			System.out.print("Entrez le mot de passe: ");
-			String password = input.next();
-
-			out.writeUTF(username);
-			out.flush();
-			out.writeUTF(password);
-			out.flush();
-			connected = in.readBoolean();
-			if (!connected) {
-				System.out.print("\nErreur dans la saisie du mot de passe. Le nom d'utilisateur existe deja sous un autre mot de passe\n");
-				continue;
+	
+			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+			DataInputStream in = new DataInputStream(socket.getInputStream());
+	
+			// Boucle d'attente de connection à un compte utilisateur
+			boolean connected = false;
+			while (!connected) {
+				System.out.print("Entrez le nom d'utilisateur: ");
+				String username = input.next();
+	
+				System.out.print("Entrez le mot de passe: ");
+				String password = input.next();
+	
+				out.writeUTF(username);
+				out.flush();
+				out.writeUTF(password);
+				out.flush();
+				connected = in.readBoolean();
+				if (!connected) {
+					System.out.print("\nErreur dans la saisie du mot de passe. "
+							+ "Le nom d'utilisateur existe deja sous un autre mot de passe\n");
+					continue;
+				}
 			}
-		}
-		System.out.println("La connection au serveur a reussi");
-
-		// Boucle d'attente des instructions de l'utilisateur
-		while (true) {
-
-			System.out.print("\n***************\nA) Traiter une image\nB) Deconnecter et quitter\nSelection: ");
-
-			String selection = input.next().strip().toUpperCase();
-
-			if (selection.matches("A")) {
-				sendImage(out);
-				System.out.print("Entrez le nom de la nouvelle image(.jpg ou .png): ");
-				String newName = inputAndValidateImageName(true);
-				getImage(newName, out, in);
-			} else if (selection.matches("B")) {
-				out.write(3);
-				out.close();
-				break;
-			} else {
-				System.out.print("Saisie invalide\n\n");
-				continue;
+			System.out.println("La connection au serveur a reussi");
+	
+			// Boucle d'attente des instructions de l'utilisateur
+			while (true) {
+	
+				System.out.print("\n***************\nA) Traiter une image\nB) Deconnecter et quitter\nSelection: ");
+	
+				String selection = input.next().strip().toUpperCase();
+	
+				if (selection.matches("A")) {
+					sendImage(out);
+					System.out.print("Entrez le nom de la nouvelle image(.jpg, .png, .bmp ou .gif): ");
+					String newName = inputAndValidateImageName(true);
+					getImage(newName, out, in);
+				} else if (selection.matches("B")) {
+					out.write(3);
+					out.close();
+					break;
+				} else {
+					System.out.print("Saisie invalide\n\n");
+					continue;
+				}
 			}
+		} catch (SocketException e) {
+			System.out.print("\nLa connection au serveur a ete interrompue ou n'est plus existante.\n");
+			return;
 		}
 		System.out.print("\nAu Revoir!\n");
 		input.close();

@@ -25,7 +25,7 @@ public class Client {
 		String prompt = "Entrez l'adresse IP: ";
 		while (!isValid) {
 			System.out.print(prompt);
-			ip = input.next().strip();
+			ip = input.next().trim();
 			isValid = ip.matches(
 					"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
 			prompt = "Le format de l'adresse IP est incorrect!\n\nEntrez l'adresse IP: ";
@@ -172,11 +172,11 @@ public class Client {
 	
 				System.out.print("\n***************\nA) Traiter une image\nB) Deconnecter et quitter\nSelection: ");
 	
-				String selection = input.next().strip().toUpperCase();
+				String selection = input.next().trim().toUpperCase();
 	
 				if (selection.matches("A")) {
 					sendImage(out);
-					System.out.print("Entrez le nom de la nouvelle image(.jpg, .png, .bmp ou .gif): ");
+					System.out.print("Entrez le nom de votre nouvelle image(.jpg, .png, .bmp ou .gif): ");
 					String newName = inputAndValidateImageName(true);
 					getImage(newName, out, in);
 				} else if (selection.matches("B")) {

@@ -31,7 +31,7 @@ public class Server {
 		String prompt = "Entrez l'adresse IP: ";
 		while(!isValid) {
 			System.out.print(prompt);
-			ip = input.next().strip();
+			ip = input.next().trim();
 			isValid = ip.matches(
 			"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 			);
@@ -167,7 +167,7 @@ public class Server {
 				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");  
 				LocalDateTime now = LocalDateTime.now();
 				System.out.print("\n\n[" + socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort() + " - " + 
-				dtf.format(now) + "] : L'utilisateur " + username + " a ete connecte.\n\n");
+				dtf.format(now) + "] : L'utilisateur " + username + " a ete connecte!\n\n");
 				
 				/* Boucle des actions du clients. 
 				 * 1) Reception et lecture d'une image du client
